@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Setup Test | Placement Prep Portal{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <h1 style="margin-bottom: 8px;"><i class="fas fa-sliders-h"></i> Configure Practice Test</h1>
+    <p style="color: var(--text-secondary); margin-bottom: 32px;">Select your preferred test settings and start solving.</p>
+    
+    <!-- Step 1: Select Category -->
+    <div class="glass-panel" style="padding: 32px; margin-bottom: 32px; border-radius: var(--radius-md);">
+        <h3>1. Select Subject / Category</h3>
+        <div class="category-grid">
+            <div class="category-card glass-panel selected" onclick="selectCategory('All')" id="cat-All">
+                <h4>All Subjects</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">Random mix of all topics</p>
+            </div>
+            {% for cat in categories %}
+            <div class="category-card glass-panel" onclick="selectCategory('{{ cat.name }}')" id="cat-{{ cat.name }}">
+                <h4>{{ cat.name }}</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">{{ cat.count }} available questions</p>
+            </div>
+            {% endfor %}
+            
+            {% if bookmarks_count > 0 %}
+            <div class="category-card glass-panel" onclick="selectCategory('Bookmarks')" id="cat-Bookmarks" style="border-color: var(--warning-color); background-color: var(--warning-light);">
+                <h4 style="color: var(--warning-color);"><i class="fas fa-bookmark"></i> Bookmarked</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">{{ bookmarks_count }} saved questions</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Step 2: Settings -->
+    <div class="glass-panel" style="padding: 32px; border-radius: var(--radius-md);">
+        <h3>2. Quiz Options</h3>
+        <div class="setup-panel">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                <!-- Difficulty Selection -->
+                <div class="form-group">
+                    <label for="difficulty-select">Difficulty Level</label>
+                    <select id="difficulty-select" class="form-control">
+                        <option value="All">All Difficulties</option>
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Hard">Hard</option>
+                    </select>
+                </div>
+                <!-- Question Count Limit -->
+                <div class="form-group">
+                    <label for="limit-select">Number of Questions</label>
+                    <select id="limit-select" class="form-control">
+                        <option value="5">5 Questions</option>
+                        <option value="10" selected>10 Questions</option>
+                        <option value="15">15 Questions</option>
+                        <option value="20">20 Questions</option>
+                        <option value="30">30 Questions</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                <!-- Timer Option -->
+                <div class="form-group">
+                    <label for="timer-select">Test Timer Mode</label>
+                    <select id="timer-select" class="form-control" onchange="toggleTimerInput(this.value)">
+                        <option value="none">Practice Mode (No Timer)</option>
+                        <option value="5">5 Minutes</option>
+                        <option value="10" selected>10 Minutes</option>
+                        <option value="15">15 Minutes</option>
+                        <option value="30">30 Minutes</option>
+                        <option value="45">45 Minutes</option>
+                        <option value="60">60 Minutes</option>
+                    </select>
+                </div>
+                <!-- View Mode Option -->
+                <div class="form-group">
+                    <label for="view-select">Question Layout</label>
+                    <select id="view-select" class="form-control">
+                        <option value="single" selected>One Question at a Time (Recommended)</option>
+                        <option value="grid">All Questions Grid (Scrollable View)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div style="text-align: right; margin-top: 16px;">
+                <button onclick="startTest()" class="btn btn-primary btn-lg" style="padding: 16px 36px; font-size: 1.1rem; border-radius: var(--radius-sm);">
+                    <i class="fas fa-play"></i> Start Practice Test
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let selectedCategoryVal = 'All';
+    
+    function selectCategory(category) {
+        // Clear all selections
+        const cards = document.querySelectorAll('.category-card');
+        cards.forEach(card => card.classList.remove('selected'));
+        
+        // Mark current selection
+        document.getElementById(`cat-${category}`).classList.add('selected');
+        selectedCategoryVal = category;
+        
+        // If bookmarks are selected, hide difficulty filter as bookmarks are difficulty-agnostic
+        const difficultySelect = document.getElementById('difficulty-select');
+        if (category === 'Bookmarks') {
+            difficultySelect.value = 'All';
+            difficultySelect.disabled = true;
+        } else {
+            difficultySelect.disabled = false;
+        }
+    }
+    
+    function toggleTimerInput(val) {
+        // Can be expanded if needed to customize minutes manually
+    }
+    
+    function startTest() {
+        const difficulty = document.getElementById('difficulty-select').value;
+        const limit = document.getElementById('limit-select').value;
+        const timer = document.getElementById('timer-select').value;
+        const view = document.getElementById('view-select').value;
+        
+        let queryParams = [];
+        
+        if (selectedCategoryVal === 'Bookmarks') {
+            queryParams.push('bookmarks=true');
+        } else {
+            queryParams.push(`category=${encodeURIComponent(selectedCategoryVal)}`);
+            queryParams.push(`difficulty=${encodeURIComponent(difficulty)}`);
+        }
+        
+        queryParams.push(`limit=${limit}`);
+        queryParams.push(`timer=${timer}`);
+        queryParams.push(`view=${view}`);
+        
+        window.location.href = `/test/take?${queryParams.join('&')}`;
+    }
+</script>
+{% endblock %}

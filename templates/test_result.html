@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+
+{% block title %}Assessment Result | Placement Prep Portal{% endblock %}
+
+{% block content %}
+<div class="result-container glass-panel animate-fade-in" id="printable-area">
+    <!-- Pass/Fail Badge -->
+    {% if result.percentage >= 50.0 %}
+    <div class="result-badge pass">
+        <i class="fas fa-check"></i>
+    </div>
+    <h2 style="color: var(--success-color); margin-bottom: 8px;">CONGRATULATIONS!</h2>
+    <div class="badge badge-success" style="font-size: 0.9rem; margin-bottom: 24px;">PASSED</div>
+    {% else %}
+    <div class="result-badge fail">
+        <i class="fas fa-times"></i>
+    </div>
+    <h2 style="color: var(--danger-color); margin-bottom: 8px;">KEEP PRACTICING!</h2>
+    <div class="badge badge-danger" style="font-size: 0.9rem; margin-bottom: 24px;">FAILED</div>
+    {% endif %}
+
+    <div class="score-display">{{ result.score }} / {{ result.total_questions }}</div>
+    <div class="result-percentage">Overall Score: {{ result.percentage }}%</div>
+
+    <div class="result-grid">
+        <div class="result-stat-box glass-panel">
+            <div class="result-stat-label">Correct</div>
+            <div class="result-stat-val" style="color: var(--success-color);">{{ result.score }}</div>
+        </div>
+        <div class="result-stat-box glass-panel">
+            <div class="result-stat-label">Wrong</div>
+            <div class="result-stat-val" style="color: var(--danger-color);">{{ result.total_questions - result.score }}</div>
+        </div>
+        <div class="result-stat-box glass-panel">
+            <div class="result-stat-label">Category</div>
+            <div class="result-stat-val" style="font-size: 1.1rem; padding-top: 4px;">{{ result.category or 'Mix' }}</div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons no-print">
+        <a href="{{ url_for('review_mistakes', result_id=result.id) }}" class="btn btn-secondary">
+            <i class="fas fa-search"></i> Review Mistakes
+        </a>
+        <button onclick="window.print()" class="btn btn-secondary">
+            <i class="fas fa-file-pdf"></i> Export PDF Report
+        </button>
+        
+        {% if result.percentage >= 80.0 %}
+        <button onclick="generateCertificate('{{ student_name }}', '{{ result.category or 'Mix' }}', '{{ result.percentage }}', '{{ result.test_date.strftime('%B %d, %Y') }}')" class="btn btn-primary" style="background: linear-gradient(135deg, #fbbf24, #d97706); border: none; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);">
+            <i class="fas fa-award"></i> Claim Certificate
+        </button>
+        {% endif %}
+        
+        <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline" style="border-color: var(--accent-color); color: var(--accent-color);">
+            <i class="fas fa-home"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Hidden Canvas for Certificate Generation -->
+<canvas id="certificate-canvas" width="1000" height="700" style="display: none;"></canvas>
+
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #printable-area, #printable-area * {
+            visibility: visible;
+        }
+        #printable-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            border: none;
+            box-shadow: none;
+            background: none;
+        }
+        .no-print {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function generateCertificate(name, category, percentage, date) {
+        const canvas = document.getElementById('certificate-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Background - Ivory/Cream certificate style
+        ctx.fillStyle = '#fdfbf7';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw Outer Gold Border
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 15;
+        ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+        
+        // Draw Inner Gold Thin Border
+        ctx.strokeStyle = '#b8860b';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(35, 35, canvas.width - 70, canvas.height - 70);
+        
+        // Corner decorative designs
+        drawCornerDeco(ctx, 40, 40);
+        drawCornerDeco(ctx, canvas.width - 40, 40, true);
+        drawCornerDeco(ctx, 40, canvas.height - 40, false, true);
+        drawCornerDeco(ctx, canvas.width - 40, canvas.height - 40, true, true);
+        
+        // Header text
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 36px "Times New Roman", Georgia, serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('PLACEMENT PREPARATION PORTAL', canvas.width / 2, 110);
+        
+        ctx.fillStyle = '#d4af37';
+        ctx.font = 'bold 18px "Georgia", serif';
+        ctx.fillText('★ CERTIFICATE OF MERIT ★', canvas.width / 2, 150);
+        
+        // Body text
+        ctx.fillStyle = '#475569';
+        ctx.font = 'italic 20px "Georgia", serif';
+        ctx.fillText('This is proudly presented to', canvas.width / 2, 220);
+        
+        // Student Name (Elegant bold serif)
+        ctx.fillStyle = '#1e3a8a';
+        ctx.font = 'bold 44px "Georgia", Times New Roman, serif';
+        ctx.fillText(name.toUpperCase(), canvas.width / 2, 290);
+        
+        // Achievement text
+        ctx.fillStyle = '#475569';
+        ctx.font = '20px "Georgia", serif';
+        ctx.fillText(`for outstanding academic performance in the mock assessment on`, canvas.width / 2, 350);
+        ctx.font = 'bold 22px "Georgia", serif';
+        ctx.fillStyle = '#0f172a';
+        ctx.fillText(`SUBJECT: ${category.toUpperCase()}`, canvas.width / 2, 395);
+        
+        ctx.fillStyle = '#475569';
+        ctx.font = '20px "Georgia", serif';
+        ctx.fillText(`achieving a score of ${percentage}%`, canvas.width / 2, 440);
+        
+        // Date and Sign lines
+        ctx.font = '16px "Georgia", serif';
+        ctx.fillText(`Date: ${date}`, 220, 560);
+        ctx.fillText('Authorized Signature', canvas.width - 220, 560);
+        
+        // Signature Line
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width - 320, 535);
+        ctx.lineTo(canvas.width - 120, 535);
+        ctx.stroke();
+        
+        // Date Line
+        ctx.beginPath();
+        ctx.moveTo(120, 535);
+        ctx.lineTo(320, 535);
+        ctx.stroke();
+        
+        // Fake signature scribble
+        ctx.strokeStyle = '#1e3a8a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width - 270, 520);
+        ctx.bezierCurveTo(canvas.width - 250, 480, canvas.width - 200, 540, canvas.width - 170, 510);
+        ctx.stroke();
+        
+        // Draw Gold Seal in center bottom
+        drawGoldSeal(ctx, canvas.width / 2, 530);
+
+        // Download PNG file
+        const link = document.createElement('a');
+        link.download = `certificate_${name.replace(/\s+/g, '_')}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('Certificate downloaded successfully!', 'success');
+    }
+    
+    function drawCornerDeco(ctx, x, y, flipX = false, flipY = false) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+        ctx.strokeStyle = '#b8860b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 30);
+        ctx.lineTo(0, 0);
+        ctx.lineTo(30, 0);
+        ctx.stroke();
+        ctx.restore();
+    }
+    
+    function drawGoldSeal(ctx, x, y) {
+        ctx.save();
+        ctx.translate(x, y);
+        
+        // Draw ribbon
+        ctx.fillStyle = '#dc2626'; // Red Ribbon
+        ctx.beginPath();
+        ctx.moveTo(-15, 0);
+        ctx.lineTo(-25, 60);
+        ctx.lineTo(-5, 50);
+        ctx.lineTo(5, 60);
+        ctx.lineTo(-5, 0);
+        ctx.fill();
+        
+        ctx.beginPath();
+        ctx.moveTo(5, 0);
+        ctx.lineTo(15, 60);
+        ctx.lineTo(-5, 50);
+        ctx.lineTo(-15, 60);
+        ctx.lineTo(5, 0);
+        ctx.fill();
+        
+        // Draw Seal Circle
+        const grad = ctx.createRadialGradient(0, 0, 5, 0, 0, 30);
+        grad.addColorStop(0, '#ffe066');
+        grad.addColorStop(0.8, '#d4af37');
+        grad.addColorStop(1, '#b8860b');
+        
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, 0, 30, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, 24, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Star in center
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('★', 0, 0);
+        
+        ctx.restore();
+    }
+</script>
+{% endblock %}

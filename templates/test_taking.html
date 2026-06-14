@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Live Practice Test | Placement Prep Portal{% endblock %}
+
+{% block content %}
+<div class="test-layout">
+    <!-- Left: Question Container -->
+    <div>
+        <div id="loading-spinner" style="text-align: center; padding: 60px;">
+            <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--accent-color);"></i>
+            <p style="margin-top: 16px; color: var(--text-secondary);">Assembling your custom mock test...</p>
+        </div>
+
+        <div id="test-content" style="display: none;">
+            <!-- Main Question Panel (Single view or Grid view will inject here) -->
+            <div id="question-wrapper"></div>
+            
+            <!-- Bottom Navigation Bar (For single view mode only) -->
+            <div id="navigation-controls" class="glass-panel" style="padding: 20px; display: flex; justify-content: space-between; align-items: center; border-radius: var(--radius-sm); margin-top: 24px;">
+                <button onclick="navigateQuestion(-1)" id="prev-btn" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Previous</button>
+                
+                <button onclick="toggleCurrentBookmark()" id="bookmark-btn" class="btn btn-outline" style="border-color: var(--warning-color); color: var(--warning-color);">
+                    <i class="far fa-bookmark"></i> Bookmark Question
+                </button>
+                
+                <button onclick="navigateQuestion(1)" id="next-btn" class="btn btn-primary">Next <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Sidebar: Stats, Nav grid, and Submission -->
+    <div id="sidebar-wrapper" class="glass-panel sidebar-panel" style="display: none; border-radius: var(--radius-md); height: fit-content;">
+        <!-- Timer Box -->
+        <div id="timer-wrapper" style="display: none;">
+            <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); text-align: center; margin-bottom: 6px;">Remaining Time</div>
+            <div id="timer-display" class="timer-box">00:00</div>
+        </div>
+        
+        <!-- Progress Indicators -->
+        <div>
+            <h4 style="margin-bottom: 12px;"><i class="fas fa-list-ol"></i> Question Progress</h4>
+            <div id="question-nav-grid" class="question-nav-grid">
+                <!-- Numbers injected dynamically -->
+            </div>
+        </div>
+        
+        <!-- Submit Button -->
+        <div style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+            <button onclick="confirmSubmitTest()" class="btn btn-danger" style="width: 100%; padding: 14px 20px; font-size: 1.05rem;">
+                <i class="fas fa-check-circle"></i> Submit Assessment
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Submit Confirmation Modal (Mocking simple prompt or simple inline confirmation) -->
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/test.js') }}"></script>
+{% endblock %}

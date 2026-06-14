@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Placement Prep Portal: The ultimate aptitude and technical mock test preparation platform for engineering college students.">
+    <title>{% block title %}Placement Prep Portal{% endblock %}</title>
+    
+    <!-- Fonts and Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Base Styling -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="navbar glass-panel">
+        <a href="/" class="nav-logo">
+            <i class="fas fa-graduation-cap"></i>
+            <span>PlacementPrep</span>
+        </a>
+        
+        <button id="menu-btn" class="menu-btn" aria-label="Toggle Navigation Menu">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <ul id="nav-links" class="nav-links">
+            {% if session.get('user_id') %}
+                {% if session.get('role') == 'admin' %}
+                    <li><a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.path == '/admin/dashboard' %}active{% endif %}"><i class="fas fa-tachometer-alt"></i> Admin Panel</a></li>
+                    <li><a href="{{ url_for('logout') }}" class="btn btn-secondary"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('student_dashboard') }}" class="nav-link {% if request.path == '/student/dashboard' %}active{% endif %}"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+                    <li><a href="{{ url_for('test_setup') }}" class="nav-link {% if request.path == '/test/setup' %}active{% endif %}"><i class="fas fa-file-signature"></i> Take Test</a></li>
+                    <li><a href="{{ url_for('logout') }}" class="btn btn-secondary"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                {% endif %}
+            {% else %}
+                <li><a href="/" class="nav-link"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="{{ url_for('auth_page') }}" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Login / Register</a></li>
+            {% endif %}
+        </ul>
+        
+        <div class="nav-actions">
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark/Light Mode">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content wrapper -->
+    <main class="main-content">
+        <!-- Toast container for notifications -->
+        <div id="toast-container" class="toast-container"></div>
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Core Javascript files -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

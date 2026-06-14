@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Login & Register | Placement Prep Portal{% endblock %}
+
+{% block content %}
+<div class="auth-container glass-panel">
+    <div class="auth-tabs">
+        <div id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Login</div>
+        <div id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">Register</div>
+    </div>
+    
+    <!-- Login Form -->
+    <form id="login-form" class="auth-form" onsubmit="handleAuthSubmit(event, 'login')">
+        <div class="form-group">
+            <label for="login-email">Email Address</label>
+            <input type="email" id="login-email" class="form-control" placeholder="name@college.edu" required>
+        </div>
+        <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100" style="width: 100%; margin-top: 10px;">
+            <i class="fas fa-sign-in-alt"></i> Access Portal
+        </button>
+    </form>
+    
+    <!-- Register Form (Hidden by default) -->
+    <form id="register-form" class="auth-form" onsubmit="handleAuthSubmit(event, 'register')" style="display: none;">
+        <div class="form-group">
+            <label for="register-name">Full Name</label>
+            <input type="text" id="register-name" class="form-control" placeholder="John Doe" required>
+        </div>
+        <div class="form-group">
+            <label for="register-email">Email Address</label>
+            <input type="email" id="register-email" class="form-control" placeholder="name@college.edu" required>
+        </div>
+        <div class="form-group">
+            <label for="register-password">Password</label>
+            <input type="password" id="register-password" class="form-control" placeholder="Minimum 6 characters" required minlength="6">
+        </div>
+        <div class="form-group">
+            <label for="register-confirm">Confirm Password</label>
+            <input type="password" id="register-confirm" class="form-control" placeholder="••••••••" required minlength="6">
+        </div>
+        <button type="submit" class="btn btn-primary w-100" style="width: 100%; margin-top: 10px;">
+            <i class="fas fa-user-plus"></i> Create Student Account
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function switchAuthTab(type) {
+        const tabLogin = document.getElementById('tab-login');
+        const tabRegister = document.getElementById('tab-register');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        
+        if (type === 'login') {
+            tabLogin.classList.add('active');
+            tabRegister.classList.remove('active');
+            loginForm.style.display = 'block';
+            registerForm.style.display = 'none';
+        } else {
+            tabLogin.classList.remove('active');
+            tabRegister.classList.add('active');
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'block';
+        }
+    }
+    
+    async function handleAuthSubmit(event, type) {
+        event.preventDefault();
+        
+        if (type === 'login') {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                const res = await apiRequest('/api/auth/login', 'POST', { email, password });
+                if (res.success) {
+                    showToast('Logged in successfully!', 'success');
+                    setTimeout(() => {
+                        window.location.href = res.role === 'admin' ? '/admin/dashboard' : '/student/dashboard';
+                    }, 800);
+                }
+            } catch (err) {
+                // error handled by apiRequest
+            }
+        } else {
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirm = document.getElementById('register-confirm').value;
+            
+            if (password !== confirm) {
+                showToast('Passwords do not match.', 'danger');
+                return;
+            }
+            
+            try {
+                const res = await apiRequest('/api/auth/register', 'POST', { name, email, password });
+                if (res.success) {
+                    showToast('Account registered successfully!', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/student/dashboard';
+                    }, 800);
+                }
+            } catch (err) {
+                // error handled by apiRequest
+            }
+        }
+    }
+</script>
+{% endblock %}

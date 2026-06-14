@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard | Placement Prep Portal{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+        <div>
+            <h1>Welcome back, {{ session.get('name') }}!</h1>
+            <p style="color: var(--text-secondary); margin-top: 4px;">Track your placement readiness and take practice mock tests.</p>
+        </div>
+        <a href="{{ url_for('test_setup') }}" class="btn btn-primary">
+            <i class="fas fa-play"></i> Start New Test
+        </a>
+    </div>
+
+    <!-- Stats Summary Row -->
+    <div class="stats-row">
+        <div class="glass-panel stat-card">
+            <div class="stat-header">
+                <span>Tests Attempted</span>
+                <i class="fas fa-edit"></i>
+            </div>
+            <div class="stat-value" id="stat-total-tests">-</div>
+        </div>
+        
+        <div class="glass-panel stat-card success">
+            <div class="stat-header">
+                <span>Average Percentage</span>
+                <i class="fas fa-percentage"></i>
+            </div>
+            <div class="stat-value" id="stat-avg-score">-</div>
+        </div>
+
+        <div class="glass-panel stat-card warning">
+            <div class="stat-header">
+                <span>Strongest Area</span>
+                <i class="fas fa-crown"></i>
+            </div>
+            <div class="stat-value" id="stat-strongest" style="font-size: 1.35rem; padding-top: 10px; font-weight: 700;">-</div>
+        </div>
+
+        <div class="glass-panel stat-card danger">
+            <div class="stat-header">
+                <span>Weakest Area</span>
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-value" id="stat-weakest" style="font-size: 1.35rem; padding-top: 10px; font-weight: 700;">-</div>
+        </div>
+    </div>
+
+    <!-- Main Grid Dashboard layout -->
+    <div class="dashboard-grid">
+        <!-- Left Column: Charts and History -->
+        <div style="display: flex; flex-direction: column; gap: 32px;">
+            <!-- Performance Chart Panel -->
+            <div class="glass-panel" style="padding: 24px; border-radius: var(--radius-md);">
+                <h3>Performance Analysis</h3>
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; margin-top: 20px;">
+                    <div>
+                        <h5 style="color: var(--text-secondary); text-align: center; margin-bottom: 10px;">Score Progress Over Time</h5>
+                        <div class="chart-container">
+                            <canvas id="progress-chart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 style="color: var(--text-secondary); text-align: center; margin-bottom: 10px;">Subject Mastery</h5>
+                        <div class="chart-container">
+                            <canvas id="radar-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test History Table -->
+            <div class="glass-panel" style="padding: 24px; border-radius: var(--radius-md);">
+                <h3>Previous Test History</h3>
+                <div class="table-responsive">
+                    <table id="history-table">
+                        <thead>
+                            <tr>
+                                <th>Test Date</th>
+                                <th>Category</th>
+                                <th>Difficulty</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Bookmarks, Leaderboard -->
+        <div style="display: flex; flex-direction: column; gap: 32px;">
+            <!-- Bookmarks Card -->
+            <div class="glass-panel" style="padding: 24px; border-radius: var(--radius-md); border-left: 4px solid var(--warning-color);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h4 style="color: var(--warning-color);"><i class="fas fa-bookmark"></i> Revision Bookmarks</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;" id="bookmarks-desc">0 saved questions</p>
+                    </div>
+                    <button onclick="startBookmarkPractice()" class="btn btn-secondary btn-sm" id="btn-practice-bookmarks" disabled>Practice</button>
+                </div>
+            </div>
+
+            <!-- Leaderboard panel -->
+            <div class="glass-panel" style="padding: 24px; border-radius: var(--radius-md);">
+                <h3>Leaderboard</h3>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;">Top student scorers in your college</p>
+                
+                <div id="leaderboard-container" class="leaderboard-list">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<!-- ChartJS library CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}

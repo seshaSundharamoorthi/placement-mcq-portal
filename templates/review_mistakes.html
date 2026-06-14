@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}Review Mistakes | Placement Prep Portal{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div>
+            <h1><i class="fas fa-search"></i> Review Assessment</h1>
+            <p id="review-subtitle" style="color: var(--text-secondary); margin-top: 4px;">Loading review details...</p>
+        </div>
+        <a href="{{ url_for('student_dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-chevron-left"></i> Dashboard
+        </a>
+    </div>
+
+    <!-- Stats Summary Panel -->
+    <div class="glass-panel" style="padding: 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; border-radius: var(--radius-sm); text-align: center;">
+        <div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Score</div>
+            <div id="summary-score" style="font-size: 1.5rem; font-weight: 800; font-family: var(--font-heading);">-</div>
+        </div>
+        <div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Percentage</div>
+            <div id="summary-percentage" style="font-size: 1.5rem; font-weight: 800; font-family: var(--font-heading);">-</div>
+        </div>
+        <div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Subject</div>
+            <div id="summary-category" style="font-size: 1.2rem; font-weight: 700; padding-top: 4px;">-</div>
+        </div>
+        <div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Incorrect</div>
+            <div id="summary-incorrect" style="font-size: 1.5rem; font-weight: 800; font-family: var(--font-heading); color: var(--danger-color);">-</div>
+        </div>
+    </div>
+
+    <!-- Review Filter Controls -->
+    <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+        <button onclick="filterReview('all')" id="btn-filter-all" class="btn btn-secondary active" style="padding: 8px 16px; font-size: 0.85rem;">All Questions</button>
+        <button onclick="filterReview('wrong')" id="btn-filter-wrong" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem; color: var(--danger-color); border-color: var(--danger-light);">Wrong Answers Only</button>
+    </div>
+
+    <!-- Spinner -->
+    <div id="review-spinner" style="text-align: center; padding: 40px;">
+        <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--accent-color);"></i>
+    </div>
+
+    <!-- Questions Container -->
+    <div id="review-container"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const resultId = "{{ result_id }}";
+    let reviewData = null;
+    let currentFilter = 'all';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadReviewDetails();
+    });
+
+    async function loadReviewDetails() {
+        try {
+            const data = await apiRequest(`/api/test/review-details/${resultId}`, 'GET');
+            reviewData = data;
+            
+            // Populate stats
+            document.getElementById('review-subtitle').innerText = `Reviewing mock assessment details.`;
+            document.getElementById('summary-score').innerText = `${data.score} / ${data.total}`;
+            document.getElementById('summary-percentage').innerText = `${data.percentage}%`;
+            document.getElementById('summary-category').innerText = data.category;
+            
+            const incorrectCount = data.total - data.score;
+            document.getElementById('summary-incorrect').innerText = incorrectCount;
+            
+            document.getElementById('review-spinner').style.display = 'none';
+            renderReviewCards();
+            
+        } catch (err) {
+            document.getElementById('review-spinner').innerHTML = `
+                <div style="color: var(--danger-color); text-align: center;">
+                    <i class="fas fa-times-circle fa-2x"></i>
+                    <p style="margin-top: 10px;">Failed to load review data.</p>
+                </div>
+            `;
+        }
+    }
+
+    function filterReview(mode) {
+        currentFilter = mode;
+        
+        document.getElementById('btn-filter-all').classList.remove('active');
+        document.getElementById('btn-filter-wrong').classList.remove('active');
+        
+        if (mode === 'all') {
+            document.getElementById('btn-filter-all').classList.add('active');
+        } else {
+            document.getElementById('btn-filter-wrong').classList.add('active');
+        }
+        
+        renderReviewCards();
+    }
+
+    function renderReviewCards() {
+        const container = document.getElementById('review-container');
+        container.innerHTML = '';
+        
+        let questionsToRender = reviewData.answers;
+        if (currentFilter === 'wrong') {
+            questionsToRender = reviewData.answers.filter(a => !a.is_correct);
+        }
+        
+        if (questionsToRender.length === 0) {
+            container.innerHTML = `
+                <div class="glass-panel" style="padding: 40px; text-align: center; border-radius: var(--radius-sm);">
+                    <i class="fas fa-check-circle fa-3x" style="color: var(--success-color); margin-bottom: 16px;"></i>
+                    <h4>No questions to display</h4>
+                    <p style="color: var(--text-secondary); margin-top: 8px;">No mistakes found in this assessment!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        questionsToRender.forEach((ans, idx) => {
+            const card = document.createElement('div');
+            card.className = `glass-panel mistake-card animate-fade-in`;
+            card.style.borderLeft = ans.is_correct ? '4px solid var(--success-color)' : '4px solid var(--danger-color)';
+            
+            const selectedText = getOptionText(ans, ans.selected);
+            const correctText = getOptionText(ans, ans.correct);
+            
+            card.innerHTML = `
+                <div class="mistake-header">
+                    <h4>Question ${idx + 1}</h4>
+                    <span class="badge ${ans.is_correct ? 'badge-success' : 'badge-danger'}">
+                        ${ans.is_correct ? 'Correct' : 'Incorrect'}
+                    </span>
+                </div>
+                <div class="question-text" style="font-size: 1.1rem; margin-bottom: 20px;">
+                    ${escapeHTML(ans.question)}
+                </div>
+                
+                <div class="mistake-answer-row">
+                    <div class="answer-box ${ans.is_correct ? 'correct' : 'wrong'}">
+                        <strong>Your Answer (${ans.selected}):</strong> ${escapeHTML(selectedText)}
+                    </div>
+                    ${!ans.is_correct ? `
+                    <div class="answer-box correct">
+                        <strong>Correct Answer (${ans.correct}):</strong> ${escapeHTML(correctText)}
+                    </div>
+                    ` : ''}
+                </div>
+                
+                ${ans.explanation ? `
+                <div class="explanation-box" style="margin-top: 16px;">
+                    <strong>Explanation:</strong> ${escapeHTML(ans.explanation)}
+                </div>
+                ` : ''}
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function getOptionText(q, optLetter) {
+        if (optLetter === 'A') return q.option_a;
+        if (optLetter === 'B') return q.option_b;
+        if (optLetter === 'C') return q.option_c;
+        if (optLetter === 'D') return q.option_d;
+        return 'None Selected';
+    }
+
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+</script>
+{% endblock %}

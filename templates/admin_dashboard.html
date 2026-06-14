@@ -1,0 +1,511 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Control Panel | Placement Prep Portal{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+        <div>
+            <h1>Admin Control Panel</h1>
+            <p style="color: var(--text-secondary); margin-top: 4px;">Manage placement quiz questions, review test logs, and check student analytics.</p>
+        </div>
+        <button onclick="openQuestionModal()" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add MCQ Question
+        </button>
+    </div>
+
+    <!-- Stats Summary Row -->
+    <div class="stats-row">
+        <div class="glass-panel stat-card">
+            <div class="stat-header">
+                <span>Total Users</span>
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-value" id="admin-stat-users">-</div>
+        </div>
+        
+        <div class="glass-panel stat-card success">
+            <div class="stat-header">
+                <span>Total Questions</span>
+                <i class="fas fa-question-circle"></i>
+            </div>
+            <div class="stat-value" id="admin-stat-questions">-</div>
+        </div>
+
+        <div class="glass-panel stat-card warning">
+            <div class="stat-header">
+                <span>Portal Average Score</span>
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div class="stat-value" id="admin-stat-average">-</div>
+        </div>
+    </div>
+
+    <!-- Tab navigation -->
+    <div class="auth-tabs" style="max-width: 600px; margin-bottom: 30px;">
+        <div id="tab-overview" class="auth-tab active" onclick="switchAdminTab('overview')">Reports & Scores</div>
+        <div id="tab-manage" class="auth-tab" onclick="switchAdminTab('manage')">Manage Questions</div>
+        <div id="tab-upload" class="auth-tab" onclick="switchAdminTab('upload')">Bulk CSV Import</div>
+    </div>
+
+    <!-- Section 1: Overview & Student Scores -->
+    <div id="sec-overview" class="admin-section">
+        <div class="dashboard-grid" style="grid-template-columns: 2fr 1fr;">
+            <!-- Student Score Rankings -->
+            <div class="glass-panel" style="padding: 24px; border-radius: var(--radius-md);">
+                <h3>Student Performance Roster</h3>
+                <div class="table-responsive" style="margin-top: 16px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Tests Attempted</th>
+                                <th>Average Score</th>
+                                <th>Max Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="student-roster-body">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Quiz Submissions -->
+            <div class="glass-panel" style="padding: 24px; border-radius: var(--radius-md);">
+                <h3>Recent Submissions</h3>
+                <div id="recent-activity-list" style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Manage Questions (CRUD list) -->
+    <div id="sec-manage" class="admin-section" style="display: none;">
+        <div class="glass-panel" style="padding: 24px; border-radius: var(--radius-md); margin-bottom: 24px;">
+            <h3>Filter & Search Questions</h3>
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; margin-top: 16px;">
+                <input type="text" id="search-q-input" class="form-control" placeholder="Search question text..." oninput="loadQuestionsList()">
+                <select id="filter-q-category" class="form-control" onchange="loadQuestionsList()">
+                    <option value="All">All Categories</option>
+                    <option value="Aptitude">Aptitude</option>
+                    <option value="Logical Reasoning">Logical Reasoning</option>
+                    <option value="Verbal Ability">Verbal Ability</option>
+                    <option value="Programming">Programming</option>
+                    <option value="Technical Subjects">Technical Subjects</option>
+                </select>
+                <select id="filter-q-difficulty" class="form-control" onchange="loadQuestionsList()">
+                    <option value="All">All Difficulties</option>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="glass-panel" style="padding: 24px; border-radius: var(--radius-md);">
+            <h3>Questions Database</h3>
+            <div id="questions-list-container" style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
+                <!-- Injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3: Bulk Import Panel -->
+    <div id="sec-upload" class="admin-section" style="display: none;">
+        <div class="glass-panel" style="padding: 32px; border-radius: var(--radius-md); max-width: 700px; margin: 0 auto;">
+            <h3>Bulk Question CSV Upload</h3>
+            <p style="color: var(--text-secondary); margin-top: 8px; font-size: 0.95rem; line-height: 1.5;">
+                Prepare your CSV file matching the exact header structure below. All fields except explanation are mandatory.
+            </p>
+            
+            <div class="explanation-box" style="margin: 20px 0; font-family: monospace; font-size: 0.85rem; overflow-x: auto;">
+                category,difficulty,question,option_a,option_b,option_c,option_d,correct_answer,explanation
+            </div>
+
+            <div style="display: flex; gap: 16px; margin-bottom: 30px;">
+                <a href="/static/../sample_questions.csv" download class="btn btn-secondary">
+                    <i class="fas fa-download"></i> Download CSV Template
+                </a>
+            </div>
+
+            <form onsubmit="handleCSVImport(event)">
+                <div class="form-group">
+                    <label for="csv-file-input">Select CSV File</label>
+                    <input type="file" id="csv-file-input" class="form-control" accept=".csv" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 10px;">
+                    <i class="fas fa-file-upload"></i> Upload & Import Questions
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Question Modal -->
+<div id="q-modal" class="modal-backdrop" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="glass-panel" style="background: var(--bg-secondary); width: 90%; max-width: 650px; border-radius: var(--radius-md); padding: 32px; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h3 id="modal-title">Add MCQ Question</h3>
+            <button onclick="closeQuestionModal()" class="theme-toggle" style="padding: 4px;"><i class="fas fa-times"></i></button>
+        </div>
+        
+        <form id="q-form" onsubmit="saveQuestion(event)">
+            <input type="hidden" id="edit-q-id">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label for="q-category">Category</label>
+                    <select id="q-category" class="form-control" required>
+                        <option value="Aptitude">Aptitude</option>
+                        <option value="Logical Reasoning">Logical Reasoning</option>
+                        <option value="Verbal Ability">Verbal Ability</option>
+                        <option value="Programming">Programming</option>
+                        <option value="Technical Subjects">Technical Subjects</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="q-difficulty">Difficulty</label>
+                    <select id="q-difficulty" class="form-control" required>
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Hard">Hard</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="q-text">Question Prompt</label>
+                <textarea id="q-text" class="form-control" rows="3" placeholder="What is the result of..." required></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label for="q-opt-a">Option A</label>
+                    <input type="text" id="q-opt-a" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="q-opt-b">Option B</label>
+                    <input type="text" id="q-opt-b" class="form-control" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label for="q-opt-c">Option C</label>
+                    <input type="text" id="q-opt-c" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="q-opt-d">Option D</label>
+                    <input type="text" id="q-opt-d" class="form-control" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px;">
+                <div class="form-group">
+                    <label for="q-correct">Correct Option</label>
+                    <select id="q-correct" class="form-control" required>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="q-explanation">Explanation (Optional)</label>
+                <textarea id="q-explanation" class="form-control" rows="2" placeholder="Because..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 24px;">
+                <button type="button" onclick="closeQuestionModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Question</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadAdminStats();
+    });
+
+    async function loadAdminStats() {
+        try {
+            const data = await apiRequest('/api/admin/stats', 'GET');
+            
+            // Counters
+            document.getElementById('admin-stat-users').innerText = data.total_users;
+            document.getElementById('admin-stat-questions').innerText = data.total_questions;
+            document.getElementById('admin-stat-average').innerText = `${data.avg_percentage}%`;
+            
+            // Student Roster
+            const rosterBody = document.getElementById('student-roster-body');
+            rosterBody.innerHTML = '';
+            
+            if (data.students_report.length === 0) {
+                rosterBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary)">No students registered yet.</td></tr>`;
+            } else {
+                data.students_report.forEach(student => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${escapeHTML(student.name)}</strong></td>
+                        <td>${escapeHTML(student.email)}</td>
+                        <td>${student.tests_taken} attempts</td>
+                        <td><strong>${student.avg_score}%</strong></td>
+                        <td><strong>${student.max_score}%</strong></td>
+                    `;
+                    rosterBody.appendChild(tr);
+                });
+            }
+
+            // Recent Submissions Activity
+            const activityList = document.getElementById('recent-activity-list');
+            activityList.innerHTML = '';
+            
+            if (data.recent_activity.length === 0) {
+                activityList.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 20px;">No recent attempts.</div>`;
+            } else {
+                data.recent_activity.forEach(act => {
+                    const item = document.createElement('div');
+                    item.className = 'glass-panel';
+                    item.style.padding = '12px 16px';
+                    item.style.display = 'flex';
+                    item.style.justifyContent = 'space-between';
+                    item.style.alignItems = 'center';
+                    item.style.borderRadius = 'var(--radius-sm)';
+                    
+                    item.innerHTML = `
+                        <div>
+                            <strong>${escapeHTML(act.student_name)}</strong>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">
+                                ${act.category} | ${act.date}
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <strong style="color: var(--accent-color);">${act.percentage}%</strong>
+                            <div style="font-size: 0.7rem; color: var(--text-secondary);">${act.score}</div>
+                        </div>
+                    `;
+                    activityList.appendChild(item);
+                });
+            }
+
+        } catch (err) {
+            console.error('Failed to load admin stats:', err);
+        }
+    }
+
+    function switchAdminTab(sec) {
+        document.getElementById('tab-overview').classList.remove('active');
+        document.getElementById('tab-manage').classList.remove('active');
+        document.getElementById('tab-upload').classList.remove('active');
+        
+        document.getElementById('sec-overview').style.display = 'none';
+        document.getElementById('sec-manage').style.display = 'none';
+        document.getElementById('sec-upload').style.display = 'none';
+        
+        document.getElementById(`tab-${sec}`).classList.add('active');
+        document.getElementById(`sec-${sec}`).style.display = 'block';
+        
+        if (sec === 'manage') {
+            loadQuestionsList();
+        } else if (sec === 'overview') {
+            loadAdminStats();
+        }
+    }
+
+    // Question Database Loader & CRUD
+    async function loadQuestionsList() {
+        const search = document.getElementById('search-q-input').value;
+        const category = document.getElementById('filter-q-category').value;
+        const difficulty = document.getElementById('filter-q-difficulty').value;
+        
+        const qContainer = document.getElementById('questions-list-container');
+        qContainer.innerHTML = '<div style="text-align: center;"><i class="fas fa-spinner fa-spin fa-lg"></i></div>';
+        
+        try {
+            const url = `/api/admin/questions?search=${encodeURIComponent(search)}&category=${encodeURIComponent(category)}&difficulty=${encodeURIComponent(difficulty)}`;
+            const data = await apiRequest(url, 'GET');
+            qContainer.innerHTML = '';
+            
+            if (data.questions.length === 0) {
+                qContainer.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--text-secondary)">No questions found.</div>`;
+                return;
+            }
+            
+            data.questions.forEach(q => {
+                const item = document.createElement('div');
+                item.className = 'glass-panel';
+                item.style.padding = '20px';
+                item.style.borderRadius = 'var(--radius-sm)';
+                
+                const difficultyClass = q.difficulty === 'Easy' ? 'success' : (q.difficulty === 'Medium' ? 'warning' : 'danger');
+                
+                item.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 12px;">
+                        <div>
+                            <span class="badge badge-info">${q.category}</span>
+                            <span class="badge badge-${difficultyClass}">Diff: ${q.difficulty}</span>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick='editQuestion(${JSON.stringify(q).replace(/'/g, "&#039;")})' class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button onclick="deleteQuestion(${q.id})" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem; background-color: var(--danger-color);">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div style="font-weight: 600; font-size: 1.05rem; margin-bottom: 12px;">${escapeHTML(q.question)}</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 12px;">
+                        <div><strong>A:</strong> ${escapeHTML(q.option_a)}</div>
+                        <div><strong>B:</strong> ${escapeHTML(q.option_b)}</div>
+                        <div><strong>C:</strong> ${escapeHTML(q.option_c)}</div>
+                        <div><strong>D:</strong> ${escapeHTML(q.option_d)}</div>
+                    </div>
+                    <div style="font-size: 0.9rem; border-top: 1px solid var(--border-color); padding-top: 8px;">
+                        <span style="color: var(--success-color); font-weight: 700;">Correct Answer: ${q.correct_answer}</span>
+                        ${q.explanation ? `<div style="margin-top: 4px; font-style: italic;"><strong>Explanation:</strong> ${escapeHTML(q.explanation)}</div>` : ''}
+                    </div>
+                `;
+                qContainer.appendChild(item);
+            });
+            
+        } catch (err) {
+            qContainer.innerHTML = `<div style="text-align: center; color: var(--danger-color)">Error loading questions list.</div>`;
+        }
+    }
+
+    // Save Question (Add or Edit)
+    async function saveQuestion(event) {
+        event.preventDefault();
+        
+        const qid = document.getElementById('edit-q-id').value;
+        const payload = {
+            category: document.getElementById('q-category').value,
+            difficulty: document.getElementById('q-difficulty').value,
+            question: document.getElementById('q-text').value,
+            option_a: document.getElementById('q-opt-a').value,
+            option_b: document.getElementById('q-opt-b').value,
+            option_c: document.getElementById('q-opt-c').value,
+            option_d: document.getElementById('q-opt-d').value,
+            correct_answer: document.getElementById('q-correct').value,
+            explanation: document.getElementById('q-explanation').value
+        };
+        
+        const method = qid ? 'PUT' : 'POST';
+        const url = qid ? `/api/admin/questions/${qid}` : '/api/admin/questions';
+        
+        try {
+            const data = await apiRequest(url, method, payload);
+            if (data.success) {
+                showToast(qid ? 'Question updated successfully!' : 'Question added successfully!', 'success');
+                closeQuestionModal();
+                loadQuestionsList();
+                loadAdminStats();
+            }
+        } catch (err) {
+            // handled
+        }
+    }
+
+    async function deleteQuestion(qid) {
+        if (confirm('Are you sure you want to delete this question? This cannot be undone.')) {
+            try {
+                const data = await apiRequest(`/api/admin/questions/${qid}`, 'DELETE');
+                if (data.success) {
+                    showToast('Question deleted successfully.', 'info');
+                    loadQuestionsList();
+                    loadAdminStats();
+                }
+            } catch (err) {
+                // handled
+            }
+        }
+    }
+
+    // Modal Control
+    function openQuestionModal() {
+        document.getElementById('q-form').reset();
+        document.getElementById('edit-q-id').value = '';
+        document.getElementById('modal-title').innerText = 'Add MCQ Question';
+        document.getElementById('q-modal').style.display = 'flex';
+    }
+
+    function editQuestion(q) {
+        document.getElementById('edit-q-id').value = q.id;
+        document.getElementById('q-category').value = q.category;
+        document.getElementById('q-difficulty').value = q.difficulty;
+        document.getElementById('q-text').value = q.question;
+        document.getElementById('q-opt-a').value = q.option_a;
+        document.getElementById('q-opt-b').value = q.option_b;
+        document.getElementById('q-opt-c').value = q.option_c;
+        document.getElementById('q-opt-d').value = q.option_d;
+        document.getElementById('q-correct').value = q.correct_answer;
+        document.getElementById('q-explanation').value = q.explanation || '';
+        
+        document.getElementById('modal-title').innerText = 'Edit MCQ Question';
+        document.getElementById('q-modal').style.display = 'flex';
+    }
+
+    function closeQuestionModal() {
+        document.getElementById('q-modal').style.display = 'none';
+    }
+
+    // CSV Import Control
+    async function handleCSVImport(event) {
+        event.preventDefault();
+        const fileInput = document.getElementById('csv-file-input');
+        const file = fileInput.files[0];
+        
+        if (!file) return;
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        
+        try {
+            const response = await fetch('/api/admin/import', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to import CSV');
+            }
+            
+            showToast(`Successfully imported ${data.count} questions!`, 'success');
+            fileInput.value = '';
+            loadAdminStats();
+            switchAdminTab('overview');
+            
+        } catch (err) {
+            showToast(err.message, 'danger');
+        } finally {
+            submitBtn.disabled = false;
+        }
+    }
+
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+</script>
+{% endblock %}
