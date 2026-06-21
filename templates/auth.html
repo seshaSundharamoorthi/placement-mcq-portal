@@ -3,54 +3,272 @@
 {% block title %}Login & Register | Placement Prep Portal{% endblock %}
 
 {% block content %}
-<div class="auth-container glass-panel">
-    <div class="auth-tabs">
-        <div id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Login</div>
-        <div id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">Register</div>
+<div class="auth-page-wrapper">
+    <!-- Glowing background accents -->
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    
+    <div class="auth-container dark-glass-panel animate-slide-up">
+        <div class="auth-tabs">
+            <div id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">
+                <i class="fas fa-lock"></i> Login
+            </div>
+            <div id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">
+                <i class="fas fa-user-plus"></i> Register
+            </div>
+        </div>
+        
+        <!-- Login Form -->
+        <form id="login-form" class="auth-form" onsubmit="handleAuthSubmit(event, 'login')">
+            <div class="form-group">
+                <label for="login-email">Email Address</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input type="email" id="login-email" class="form-control-dark" placeholder="name@college.edu" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password</label>
+                <div class="input-wrapper relative-parent">
+                    <i class="fas fa-key input-icon"></i>
+                    <input type="password" id="login-password" class="form-control-dark" placeholder="••••••••" required>
+                    <span class="password-toggle" onclick="togglePasswordVisibility('login-password')">
+                        <i class="far fa-eye" id="toggle-icon-login-password"></i>
+                    </span>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-glow w-100" style="width: 100%; margin-top: 16px;">
+                <span>Sign In <i class="fas fa-sign-in-alt"></i></span>
+            </button>
+        </form>
+        
+        <!-- Register Form (Hidden by default) -->
+        <form id="register-form" class="auth-form" onsubmit="handleAuthSubmit(event, 'register')" style="display: none;">
+            <div class="form-group">
+                <label for="register-name">Full Name</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user input-icon"></i>
+                    <input type="text" id="register-name" class="form-control-dark" placeholder="John Doe" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="register-email">Email Address</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input type="email" id="register-email" class="form-control-dark" placeholder="name@college.edu" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="register-password">Password</label>
+                <div class="input-wrapper relative-parent">
+                    <i class="fas fa-key input-icon"></i>
+                    <input type="password" id="register-password" class="form-control-dark" placeholder="Minimum 6 characters" required minlength="6">
+                    <span class="password-toggle" onclick="togglePasswordVisibility('register-password')">
+                        <i class="far fa-eye" id="toggle-icon-register-password"></i>
+                    </span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="register-confirm">Confirm Password</label>
+                <div class="input-wrapper relative-parent">
+                    <i class="fas fa-shield-alt input-icon"></i>
+                    <input type="password" id="register-confirm" class="form-control-dark" placeholder="••••••••" required minlength="6">
+                    <span class="password-toggle" onclick="togglePasswordVisibility('register-confirm')">
+                        <i class="far fa-eye" id="toggle-icon-register-confirm"></i>
+                    </span>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-glow w-100" style="width: 100%; margin-top: 16px;">
+                <span>Create Account <i class="fas fa-user-plus"></i></span>
+            </button>
+        </form>
     </div>
-    
-    <!-- Login Form -->
-    <form id="login-form" class="auth-form" onsubmit="handleAuthSubmit(event, 'login')">
-        <div class="form-group">
-            <label for="login-email">Email Address</label>
-            <input type="email" id="login-email" class="form-control" placeholder="name@college.edu" required>
-        </div>
-        <div class="form-group">
-            <label for="login-password">Password</label>
-            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
-        </div>
-        <button type="submit" class="btn btn-primary w-100" style="width: 100%; margin-top: 10px;">
-            <i class="fas fa-sign-in-alt"></i> Access Portal
-        </button>
-    </form>
-    
-    <!-- Register Form (Hidden by default) -->
-    <form id="register-form" class="auth-form" onsubmit="handleAuthSubmit(event, 'register')" style="display: none;">
-        <div class="form-group">
-            <label for="register-name">Full Name</label>
-            <input type="text" id="register-name" class="form-control" placeholder="John Doe" required>
-        </div>
-        <div class="form-group">
-            <label for="register-email">Email Address</label>
-            <input type="email" id="register-email" class="form-control" placeholder="name@college.edu" required>
-        </div>
-        <div class="form-group">
-            <label for="register-password">Password</label>
-            <input type="password" id="register-password" class="form-control" placeholder="Minimum 6 characters" required minlength="6">
-        </div>
-        <div class="form-group">
-            <label for="register-confirm">Confirm Password</label>
-            <input type="password" id="register-confirm" class="form-control" placeholder="••••••••" required minlength="6">
-        </div>
-        <button type="submit" class="btn btn-primary w-100" style="width: 100%; margin-top: 10px;">
-            <i class="fas fa-user-plus"></i> Create Student Account
-        </button>
-    </form>
 </div>
+
+<style>
+    /* Premium Login Redesign styling */
+    .auth-page-wrapper {
+        position: relative;
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    
+    .glow-orb {
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        filter: blur(100px);
+        z-index: 1;
+        opacity: 0.45;
+        pointer-events: none;
+        animation: orbFloat 8s infinite alternate ease-in-out;
+    }
+    
+    .orb-1 {
+        background: radial-gradient(circle, #6366f1, #a855f7);
+        top: 10%;
+        left: 20%;
+    }
+    
+    .orb-2 {
+        background: radial-gradient(circle, #34d399, #6366f1);
+        bottom: 10%;
+        right: 20%;
+        animation-delay: -4s;
+    }
+    
+    @keyframes orbFloat {
+        0% { transform: translateY(0px) scale(1); }
+        100% { transform: translateY(40px) scale(1.15); }
+    }
+    
+    .dark-glass-panel {
+        background: rgba(10, 15, 30, 0.75);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        border-radius: 20px;
+        z-index: 2;
+        width: 100%;
+        max-width: 440px;
+        padding: 40px;
+    }
+    
+    .auth-tabs {
+        display: flex;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        margin-bottom: 30px;
+    }
+    
+    .auth-tab {
+        flex: 1;
+        text-align: center;
+        padding: 14px;
+        font-weight: 700;
+        font-family: var(--font-heading);
+        cursor: pointer;
+        color: #94a3b8;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .auth-tab:hover {
+        color: #f8fafc;
+    }
+    
+    .auth-tab.active {
+        color: #818cf8;
+        border-bottom-color: #818cf8;
+    }
+    
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    
+    .input-icon {
+        position: absolute;
+        left: 16px;
+        color: #64748b;
+        font-size: 0.95rem;
+        pointer-events: none;
+    }
+    
+    .form-control-dark {
+        width: 100%;
+        padding: 14px 16px 14px 44px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.03);
+        color: #f8fafc;
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control-dark::placeholder {
+        color: #475569;
+    }
+    
+    .form-control-dark:focus {
+        outline: none;
+        border-color: #818cf8;
+        background: rgba(255, 255, 255, 0.06);
+        box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.15);
+    }
+    
+    .password-toggle {
+        position: absolute;
+        right: 16px;
+        cursor: pointer;
+        color: #64748b;
+        transition: color 0.3s ease;
+        z-index: 10;
+        padding: 4px;
+    }
+    
+    .password-toggle:hover {
+        color: #cbd5e1;
+    }
+    
+    .btn-glow {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #ffffff !important;
+        border: none;
+        border-radius: 12px;
+        padding: 14px 28px;
+        font-family: var(--font-heading);
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .btn-glow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(99, 102, 241, 0.5);
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    }
+    
+    .animate-slide-up {
+        animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
+    @keyframes slideUp {
+        from { transform: translateY(40px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+    function togglePasswordVisibility(inputId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(`toggle-icon-${inputId}`);
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'far fa-eye-slash';
+        } else {
+            input.type = 'password';
+            icon.className = 'far fa-eye';
+        }
+    }
+
     function switchAuthTab(type) {
         const tabLogin = document.getElementById('tab-login');
         const tabRegister = document.getElementById('tab-register');
@@ -86,7 +304,7 @@
                     }, 800);
                 }
             } catch (err) {
-                // error handled by apiRequest
+                // handled by apiRequest
             }
         } else {
             const name = document.getElementById('register-name').value;
@@ -108,7 +326,7 @@
                     }, 800);
                 }
             } catch (err) {
-                // error handled by apiRequest
+                // handled by apiRequest
             }
         }
     }

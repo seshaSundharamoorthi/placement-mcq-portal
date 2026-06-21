@@ -10,6 +10,7 @@ let secondsRemaining = 0;
 // URL parameters
 const urlParams = new URLSearchParams(window.location.search);
 const category = urlParams.get('category') || 'All';
+const subcategory = urlParams.get('subcategory') || 'All';
 const difficulty = urlParams.get('difficulty') || 'All';
 const limit = parseInt(urlParams.get('limit')) || 10;
 const timerParam = urlParams.get('timer') || 'none';
@@ -26,6 +27,9 @@ async function loadTestQuestions() {
         url += '&bookmarks=true';
     } else {
         if (category) url += `&category=${encodeURIComponent(category)}`;
+        if (category === 'Programming' && subcategory) {
+            url += `&subcategory=${encodeURIComponent(subcategory)}`;
+        }
         if (difficulty) url += `&difficulty=${encodeURIComponent(difficulty)}`;
     }
 
@@ -204,10 +208,11 @@ function renderSingleQuestion() {
     qPanel.id = `q-card-${currentIndex}`;
     
     const difficultyClass = q.difficulty === 'Easy' ? 'success' : (q.difficulty === 'Medium' ? 'warning' : 'danger');
+    const subcatText = q.subcategory ? ` (${q.subcategory})` : '';
     
     qPanel.innerHTML = `
         <div class="question-meta">
-            <span class="badge badge-info">${q.category}</span>
+            <span class="badge badge-info">${q.category}${subcatText}</span>
             <span class="badge badge-${difficultyClass}">Diff: ${q.difficulty}</span>
         </div>
         <div class="question-text">
@@ -247,11 +252,12 @@ function renderGridQuestions() {
         qPanel.style.marginBottom = '32px';
         
         const difficultyClass = q.difficulty === 'Easy' ? 'success' : (q.difficulty === 'Medium' ? 'warning' : 'danger');
+        const subcatText = q.subcategory ? ` (${q.subcategory})` : '';
         
         qPanel.innerHTML = `
             <div class="question-meta">
                 <div style="display: flex; gap: 8px;">
-                    <span class="badge badge-info">${q.category}</span>
+                    <span class="badge badge-info">${q.category}${subcatText}</span>
                     <span class="badge badge-${difficultyClass}">Diff: ${q.difficulty}</span>
                 </div>
                 <button onclick="toggleGridBookmark(${q.id}, ${idx})" class="btn" style="padding: 4px 10px; font-size: 0.8rem; border: 1px solid var(--warning-color); color: var(--warning-color); background: ${bookmarks.has(q.id) ? 'var(--warning-light)' : 'transparent'}">
@@ -288,7 +294,6 @@ function renderGridQuestions() {
 function selectOption(questionId, option, qIndex = null) {
     answers[questionId] = option;
     
-    // Update view selection
     const buttons = document.querySelectorAll(`[id^="opt-${questionId}-"]`);
     buttons.forEach(btn => btn.classList.remove('selected'));
     document.getElementById(`opt-${questionId}-${option}`).classList.add('selected');
@@ -336,7 +341,7 @@ async function toggleBookmarkRequest(qid) {
         }
         updateNavStatus();
     } catch (err) {
-        // error toast shown by apiRequest
+        // handled
     }
 }
 
@@ -359,7 +364,6 @@ async function submitTestAnswers(autoSubmit = false) {
         clearInterval(timerInterval);
     }
     
-    // Disable buttons to prevent duplicate submission
     const submitBtn = document.querySelector('.btn-danger');
     if (submitBtn) submitBtn.disabled = true;
 
@@ -367,6 +371,7 @@ async function submitTestAnswers(autoSubmit = false) {
         const res = await apiRequest('/api/test/submit', 'POST', {
             answers,
             category: bookmarksOnly ? 'Bookmarked Practice' : category,
+            subcategory: bookmarksOnly ? '' : subcategory,
             difficulty: bookmarksOnly ? 'Mix' : difficulty
         });
         
@@ -378,7 +383,6 @@ async function submitTestAnswers(autoSubmit = false) {
         }
     } catch (err) {
         if (submitBtn) submitBtn.disabled = false;
-        // error handled by apiRequest
     }
 }
 

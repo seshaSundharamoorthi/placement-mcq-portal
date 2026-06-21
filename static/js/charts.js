@@ -8,12 +8,44 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadDashboardData() {
     try {
         const data = await apiRequest('/api/student/analytics', 'GET');
+        const user = data.user_details;
         
-        // Update stats
-        document.getElementById('stat-total-tests').innerText = data.total_tests;
-        document.getElementById('stat-avg-score').innerText = `${data.avg_percentage}%`;
-        document.getElementById('stat-strongest').innerText = data.strongest;
-        document.getElementById('stat-weakest').innerText = data.weakest;
+        // Update top stats cards
+        document.getElementById('stat-total-attempted').innerText = user.total_attempted;
+        document.getElementById('stat-total-correct').innerText = user.total_correct;
+        document.getElementById('stat-overall-percentage').innerText = `${user.overall_percentage}%`;
+        document.getElementById('stat-bookmarks-count').innerText = data.bookmarked_count;
+        
+        // Update details subtitles
+        document.getElementById('stat-registered-date').innerText = `Registered: ${formatDateString(user.created_at)}`;
+        document.getElementById('stat-total-wrong').innerText = `Wrong: ${user.total_wrong}`;
+        document.getElementById('stat-last-login').innerText = `Last Login: ${formatDateString(user.last_login)}`;
+        
+        // Update main category progress bars and values
+        document.getElementById('val-score-aptitude').innerText = `${user.aptitude_score}%`;
+        document.getElementById('bar-score-aptitude').style.width = `${user.aptitude_score}%`;
+        
+        document.getElementById('val-score-reasoning').innerText = `${user.reasoning_score}%`;
+        document.getElementById('bar-score-reasoning').style.width = `${user.reasoning_score}%`;
+        
+        document.getElementById('val-score-programming').innerText = `${user.programming_score}%`;
+        document.getElementById('bar-score-programming').style.width = `${user.programming_score}%`;
+        
+        // Update programming language progress bars and values
+        document.getElementById('val-score-python').innerText = `${user.python_score}%`;
+        document.getElementById('bar-score-python').style.width = `${user.python_score}%`;
+        
+        document.getElementById('val-score-java').innerText = `${user.java_score}%`;
+        document.getElementById('bar-score-java').style.width = `${user.java_score}%`;
+        
+        document.getElementById('val-score-c').innerText = `${user.c_score}%`;
+        document.getElementById('bar-score-c').style.width = `${user.c_score}%`;
+        
+        document.getElementById('val-score-cpp').innerText = `${user.cpp_score}%`;
+        document.getElementById('bar-score-cpp').style.width = `${user.cpp_score}%`;
+        
+        document.getElementById('val-score-javascript').innerText = `${user.javascript_score}%`;
+        document.getElementById('bar-score-javascript').style.width = `${user.javascript_score}%`;
         
         // Bookmarks status
         const bookmarksDesc = document.getElementById('bookmarks-desc');
@@ -25,6 +57,9 @@ async function loadDashboardData() {
                 bookmarksBtn.className = 'btn btn-primary btn-sm';
                 bookmarksBtn.style.background = 'var(--warning-color)';
                 bookmarksBtn.style.border = 'none';
+            } else {
+                bookmarksBtn.disabled = true;
+                bookmarksBtn.className = 'btn btn-secondary btn-sm';
             }
         }
 
@@ -44,6 +79,17 @@ async function loadDashboardData() {
     }
 }
 
+function formatDateString(str) {
+    if (!str) return 'N/A';
+    try {
+        const d = new Date(str.replace(' ', 'T'));
+        if (isNaN(d.getTime())) return str;
+        return d.toLocaleDateString(undefined, {month: 'short', day: 'numeric'}) + ' ' + d.toLocaleTimeString(undefined, {hour: '2-digit', minute:'2-digit'});
+    } catch(e) {
+        return str;
+    }
+}
+
 function startBookmarkPractice() {
     window.location.href = '/test/take?bookmarks=true&limit=10&view=single';
 }
@@ -58,7 +104,7 @@ function renderHistoryTable(history) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 30px;">
-                    <i class="fas fa-info-circle fa-lg"></i> No test attempts yet. Click "Start New Test" to begin.
+                    <i class="fas fa-info-circle fa-lg"></i> No test attempts yet. Click "Start Mock Test" to begin.
                 </td>
             </tr>
         `;
@@ -68,10 +114,11 @@ function renderHistoryTable(history) {
     history.forEach(row => {
         const tr = document.createElement('tr');
         const difficultyClass = row.difficulty === 'Easy' ? 'success' : (row.difficulty === 'Medium' ? 'warning' : 'danger');
+        const subcatText = row.subcategory ? ` (${row.subcategory})` : '';
         
         tr.innerHTML = `
             <td>${row.test_date}</td>
-            <td><span class="badge badge-info">${row.category}</span></td>
+            <td><span class="badge badge-info">${row.category}${subcatText}</span></td>
             <td><span class="badge badge-${difficultyClass}">${row.difficulty}</span></td>
             <td><strong>${row.score}/${row.total_questions}</strong></td>
             <td><strong>${row.percentage}%</strong></td>
@@ -142,61 +189,28 @@ function renderRadarChart(categoryRadar) {
     const labels = Object.keys(categoryRadar);
     const values = Object.values(categoryRadar);
     
-    if (labels.length < 3) {
-        // Fallback to Bar chart if there aren't enough data points for a radar chart
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: values,
-                    backgroundColor: '#10b981',
-                    borderRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: {
-                        min: 0,
-                        max: 100,
-                        grid: { color: isDark ? '#1e293b' : '#f1f5f9' },
-                        ticks: { color: isDark ? '#94a3b8' : '#64748b' }
-                    },
-                    x: { ticks: { color: isDark ? '#94a3b8' : '#64748b' } }
-                }
-            }
-        });
-        return;
-    }
-
     new Chart(ctx, {
-        type: 'radar',
+        type: 'bar',
         data: {
             labels: labels,
             datasets: [{
-                label: 'Average Score (%)',
                 data: values,
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                borderWidth: 2,
-                pointBackgroundColor: '#10b981'
+                backgroundColor: ['#6366f1', '#f59e0b', '#10b981'],
+                borderRadius: 6
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
             scales: {
-                r: {
-                    angleLines: { color: isDark ? '#1e293b' : '#f1f5f9' },
-                    grid: { color: isDark ? '#1e293b' : '#f1f5f9' },
-                    pointLabels: { color: isDark ? '#94a3b8' : '#64748b', font: { size: 10 } },
-                    ticks: { color: isDark ? '#94a3b8' : '#64748b', backdropColor: 'transparent' },
+                y: {
                     min: 0,
-                    max: 100
-                }
+                    max: 100,
+                    grid: { color: isDark ? '#1e293b' : '#f1f5f9' },
+                    ticks: { color: isDark ? '#94a3b8' : '#64748b' }
+                },
+                x: { ticks: { color: isDark ? '#94a3b8' : '#64748b' } }
             }
         }
     });
@@ -207,7 +221,7 @@ function renderEmptyCharts() {
     const rContainer = document.getElementById('radar-chart').parentNode;
     
     pContainer.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-secondary)">No progress data yet</div>`;
-    rContainer.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-secondary)">Take tests in multiple categories</div>`;
+    rContainer.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-secondary)">Take tests to build performance logs</div>`;
 }
 
 async function loadLeaderboardData() {

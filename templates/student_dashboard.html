@@ -3,68 +3,75 @@
 {% block title %}Student Dashboard | Placement Prep Portal{% endblock %}
 
 {% block content %}
-<div class="animate-fade-in">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+<div class="animate-fade-in" style="display: flex; flex-direction: column; gap: 32px;">
+    <!-- Welcome Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <div>
-            <h1>Welcome back, {{ session.get('name') }}!</h1>
-            <p style="color: var(--text-secondary); margin-top: 4px;">Track your placement readiness and take practice mock tests.</p>
+            <h1>Welcome back, <span style="color: var(--accent-color);">{{ session.get('name') }}</span>!</h1>
+            <p style="color: var(--text-secondary); margin-top: 4px;">Track your placement readiness, review mistakes, and practice mock tests.</p>
         </div>
-        <a href="{{ url_for('test_setup') }}" class="btn btn-primary">
-            <i class="fas fa-play"></i> Start New Test
-        </a>
+        <div style="display: flex; gap: 12px;">
+            <a href="{{ url_for('test_setup') }}" class="btn btn-primary">
+                <i class="fas fa-play"></i> Start Mock Test
+            </a>
+        </div>
     </div>
 
     <!-- Stats Summary Row -->
     <div class="stats-row">
         <div class="glass-panel stat-card">
             <div class="stat-header">
-                <span>Tests Attempted</span>
-                <i class="fas fa-edit"></i>
+                <span>Attempted</span>
+                <i class="fas fa-tasks"></i>
             </div>
-            <div class="stat-value" id="stat-total-tests">-</div>
+            <div class="stat-value" id="stat-total-attempted">-</div>
+            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px;" id="stat-registered-date">Registered: -</p>
         </div>
         
         <div class="glass-panel stat-card success">
             <div class="stat-header">
-                <span>Average Percentage</span>
-                <i class="fas fa-percentage"></i>
+                <span>Correct</span>
+                <i class="fas fa-check-circle"></i>
             </div>
-            <div class="stat-value" id="stat-avg-score">-</div>
+            <div class="stat-value" id="stat-total-correct" style="color: var(--success-color);">-</div>
+            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px;" id="stat-total-wrong">Wrong: -</p>
         </div>
 
         <div class="glass-panel stat-card warning">
             <div class="stat-header">
-                <span>Strongest Area</span>
-                <i class="fas fa-crown"></i>
+                <span>Overall Grade</span>
+                <i class="fas fa-percentage"></i>
             </div>
-            <div class="stat-value" id="stat-strongest" style="font-size: 1.35rem; padding-top: 10px; font-weight: 700;">-</div>
+            <div class="stat-value" id="stat-overall-percentage">-</div>
+            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px;" id="stat-last-login">Last Login: -</p>
         </div>
 
         <div class="glass-panel stat-card danger">
             <div class="stat-header">
-                <span>Weakest Area</span>
-                <i class="fas fa-exclamation-triangle"></i>
+                <span>Revision Deck</span>
+                <i class="fas fa-bookmark"></i>
             </div>
-            <div class="stat-value" id="stat-weakest" style="font-size: 1.35rem; padding-top: 10px; font-weight: 700;">-</div>
+            <div class="stat-value" id="stat-bookmarks-count">-</div>
+            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px;">Questions saved</p>
         </div>
     </div>
 
-    <!-- Main Grid Dashboard layout -->
+    <!-- Middle: Charts & Subject Mastery Grid -->
     <div class="dashboard-grid">
-        <!-- Left Column: Charts and History -->
+        <!-- Left: Analytics Charts & Detailed Mastery -->
         <div style="display: flex; flex-direction: column; gap: 32px;">
-            <!-- Performance Chart Panel -->
-            <div class="glass-panel" style="padding: 24px; border-radius: var(--radius-md);">
-                <h3>Performance Analysis</h3>
-                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; margin-top: 20px;">
+            <!-- Charts Panel -->
+            <div class="glass-panel" style="padding: 28px; border-radius: var(--radius-md);">
+                <h3>Practice Analytics</h3>
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; margin-top: 24px; min-height: 280px; align-items: center;">
                     <div>
-                        <h5 style="color: var(--text-secondary); text-align: center; margin-bottom: 10px;">Score Progress Over Time</h5>
+                        <h5 style="color: var(--text-secondary); text-align: center; margin-bottom: 12px;">Score Progress Over Time</h5>
                         <div class="chart-container">
                             <canvas id="progress-chart"></canvas>
                         </div>
                     </div>
                     <div>
-                        <h5 style="color: var(--text-secondary); text-align: center; margin-bottom: 10px;">Subject Mastery</h5>
+                        <h5 style="color: var(--text-secondary); text-align: center; margin-bottom: 12px;">Core Area Strength</h5>
                         <div class="chart-container">
                             <canvas id="radar-chart"></canvas>
                         </div>
@@ -72,10 +79,113 @@
                 </div>
             </div>
 
-            <!-- Test History Table -->
-            <div class="glass-panel" style="padding: 24px; border-radius: var(--radius-md);">
-                <h3>Previous Test History</h3>
-                <div class="table-responsive">
+            <!-- Subject & Language Mastery Progress bars -->
+            <div class="glass-panel" style="padding: 28px; border-radius: var(--radius-md);">
+                <h3>Detailed Skill Mastery</h3>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 24px;">Your average percentage score across categories and coding languages.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+                    <!-- Categories -->
+                    <div>
+                        <h4 style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;"><i class="fas fa-university"></i> Main Subjects</h4>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 6px;">
+                                <span>Quantitative Aptitude</span>
+                                <strong id="val-score-aptitude">-</strong>
+                            </div>
+                            <div class="progress-bar-bg" style="background: var(--border-color); height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div id="bar-score-aptitude" style="background: var(--accent-color); width: 0%; height: 100%; transition: width 1s ease;"></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 6px;">
+                                <span>Logical Reasoning</span>
+                                <strong id="val-score-reasoning">-</strong>
+                            </div>
+                            <div class="progress-bar-bg" style="background: var(--border-color); height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div id="bar-score-reasoning" style="background: var(--warning-color); width: 0%; height: 100%; transition: width 1s ease;"></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 6px;">
+                                <span>Core Programming</span>
+                                <strong id="val-score-programming">-</strong>
+                            </div>
+                            <div class="progress-bar-bg" style="background: var(--border-color); height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div id="bar-score-programming" style="background: var(--success-color); width: 0%; height: 100%; transition: width 1s ease;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Languages -->
+                    <div>
+                        <h4 style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;"><i class="fas fa-code"></i> Programming Languages</h4>
+                        
+                        <!-- Python -->
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
+                                <span>Python</span>
+                                <strong id="val-score-python">-</strong>
+                            </div>
+                            <div style="background: var(--border-color); height: 6px; border-radius: 3px; overflow: hidden;">
+                                <div id="bar-score-python" style="background: #3776ab; width: 0%; height: 100%; transition: width 1s ease;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Java -->
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
+                                <span>Java</span>
+                                <strong id="val-score-java">-</strong>
+                            </div>
+                            <div style="background: var(--border-color); height: 6px; border-radius: 3px; overflow: hidden;">
+                                <div id="bar-score-java" style="background: #ea2d2e; width: 0%; height: 100%; transition: width 1s ease;"></div>
+                            </div>
+                        </div>
+
+                        <!-- C -->
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
+                                <span>C</span>
+                                <strong id="val-score-c">-</strong>
+                            </div>
+                            <div style="background: var(--border-color); height: 6px; border-radius: 3px; overflow: hidden;">
+                                <div id="bar-score-c" style="background: #a8b9cc; width: 0%; height: 100%; transition: width 1s ease;"></div>
+                            </div>
+                        </div>
+
+                        <!-- C++ -->
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
+                                <span>C++</span>
+                                <strong id="val-score-cpp">-</strong>
+                            </div>
+                            <div style="background: var(--border-color); height: 6px; border-radius: 3px; overflow: hidden;">
+                                <div id="bar-score-cpp" style="background: #f34b7d; width: 0%; height: 100%; transition: width 1s ease;"></div>
+                            </div>
+                        </div>
+
+                        <!-- JS -->
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
+                                <span>JavaScript</span>
+                                <strong id="val-score-javascript">-</strong>
+                            </div>
+                            <div style="background: var(--border-color); height: 6px; border-radius: 3px; overflow: hidden;">
+                                <div id="bar-score-javascript" style="background: #f7df1e; width: 0%; height: 100%; transition: width 1s ease;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Table -->
+            <div class="glass-panel" style="padding: 28px; border-radius: var(--radius-md);">
+                <h3>Assessment History Log</h3>
+                <div class="table-responsive" style="margin-top: 16px;">
                     <table id="history-table">
                         <thead>
                             <tr>
@@ -95,24 +205,21 @@
             </div>
         </div>
 
-        <!-- Right Column: Bookmarks, Leaderboard -->
+        <!-- Right: Revision Bookmarks & Leaderboard -->
         <div style="display: flex; flex-direction: column; gap: 32px;">
-            <!-- Bookmarks Card -->
-            <div class="glass-panel" style="padding: 24px; border-radius: var(--radius-md); border-left: 4px solid var(--warning-color);">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <h4 style="color: var(--warning-color);"><i class="fas fa-bookmark"></i> Revision Bookmarks</h4>
-                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;" id="bookmarks-desc">0 saved questions</p>
-                    </div>
-                    <button onclick="startBookmarkPractice()" class="btn btn-secondary btn-sm" id="btn-practice-bookmarks" disabled>Practice</button>
+            <!-- Bookmarked Revision Card -->
+            <div class="glass-panel" style="padding: 24px; border-radius: var(--radius-md); border-left: 4px solid var(--warning-color); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="color: var(--warning-color);"><i class="fas fa-bookmark"></i> Question Bookmarks</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;" id="bookmarks-desc">0 saved questions</p>
                 </div>
+                <button onclick="startBookmarkPractice()" class="btn btn-secondary btn-sm" id="btn-practice-bookmarks" disabled>Practice</button>
             </div>
 
-            <!-- Leaderboard panel -->
+            <!-- Leaderboard -->
             <div class="glass-panel" style="padding: 24px; border-radius: var(--radius-md);">
-                <h3>Leaderboard</h3>
-                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;">Top student scorers in your college</p>
-                
+                <h3>College Leaderboard</h3>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px; margin-bottom: 16px;">Top student scorers in your college</p>
                 <div id="leaderboard-container" class="leaderboard-list">
                     <!-- Injected dynamically -->
                 </div>
@@ -123,7 +230,6 @@
 {% endblock %}
 
 {% block extra_head %}
-<!-- ChartJS library CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 

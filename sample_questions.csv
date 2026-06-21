@@ -1,6 +1,8 @@
-category,difficulty,question,option_a,option_b,option_c,option_d,correct_answer,explanation
-Aptitude,Easy,"A car travels 300 km in 5 hours. What is its speed in km/h?","40 km/h","50 km/h","60 km/h","70 km/h",C,"Speed = Distance / Time = 300 / 5 = 60 km/h."
-Logical Reasoning,Easy,"If A is B's brother, and B is C's sister, how is A related to C?","Brother","Sister","Father","Uncle",A,"Since A is B's brother and B is C's sister, they are all siblings. Therefore, A is C's brother."
-Programming,Medium,"Which of the following is not a mutable data type in Python?","List","Dictionary","Set","Tuple",D,"Tuples are immutable in Python. Lists, Dictionaries, and Sets are mutable."
-Verbal Ability,Easy,"Select the antonym for 'ANCIENT'.","Old","Modern","Historic","Antique",B,"Modern is the antonym of ancient."
-Technical Subjects,Hard,"In the Relational Model of databases, what does a primary key uniquely identify?","A column","A schema","A tuple (row)","A relationship",C,"A primary key is a field or set of fields that uniquely identifies each tuple (row) in a database table."
+category,subcategory,difficulty,question,option_a,option_b,option_c,option_d,correct_answer,explanation
+Aptitude,,Easy,"A car travels 300 km in 5 hours. What is its speed in km/h?","40 km/h","50 km/h","60 km/h","70 km/h",C,"Speed = Distance / Time = 300 / 5 = 60 km/h."
+Logical Reasoning,,Easy,"If A is B's brother, and B is C's sister, how is A related to C?","Brother","Sister","Father","Uncle",A,"Since A is B's brother and B is C's sister, they are all siblings. Therefore, A is C's brother."
+Programming,Python,Medium,"Which of the following is not a mutable data type in Python?","List","Dictionary","Set","Tuple",D,"Tuples are immutable in Python. Lists, Dictionaries, and Sets are mutable."
+Programming,Java,Easy,"Which statement is used to define a class package in Java?","package","import","namespace","classes",A,"The 'package' keyword defines the namespace container in Java."
+Programming,C,Easy,"Which function allocates a requested size of bytes and returns a void pointer in C?","malloc()","calloc()","realloc()","alloc()",A,"The malloc() function dynamically allocates memory blocks in C."
+Verbal Ability,,Easy,"Select the antonym for 'ANCIENT'.","Old","Modern","Historic","Antique",B,"Modern is the antonym of ancient."
+Technical Subjects,,Hard,"In the Relational Model of databases, what does a primary key uniquely identify?","A column","A schema","A tuple (row)","A relationship",C,"A primary key is a field or set of fields that uniquely identifies each tuple (row) in a database table."

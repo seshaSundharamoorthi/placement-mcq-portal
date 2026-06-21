@@ -3,7 +3,7 @@
 {% block title %}Setup Test | Placement Prep Portal{% endblock %}
 
 {% block content %}
-<div style="max-width: 900px; margin: 0 auto;">
+<div style="max-width: 900px; margin: 0 auto;" class="animate-fade-in">
     <h1 style="margin-bottom: 8px;"><i class="fas fa-sliders-h"></i> Configure Practice Test</h1>
     <p style="color: var(--text-secondary); margin-bottom: 32px;">Select your preferred test settings and start solving.</p>
     
@@ -28,6 +28,19 @@
                 <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">{{ bookmarks_count }} saved questions</p>
             </div>
             {% endif %}
+        </div>
+        
+        <!-- Programming Subcategory Selector (Hidden by default, shown when category Programming is active) -->
+        <div id="programming-language-wrapper" class="form-group animate-fade-in" style="display: none; margin-top: 24px; max-width: 400px;">
+            <label for="programming-lang-select" style="font-weight: 700; color: var(--accent-color);">Select Programming Language</label>
+            <select id="programming-lang-select" class="form-control" style="margin-top: 8px;">
+                <option value="All">All Languages (Mix)</option>
+                <option value="Python">Python</option>
+                <option value="Java">Java</option>
+                <option value="C">C</option>
+                <option value="C++">C++</option>
+                <option value="JavaScript">JavaScript</option>
+            </select>
         </div>
     </div>
     
@@ -63,7 +76,7 @@
                 <!-- Timer Option -->
                 <div class="form-group">
                     <label for="timer-select">Test Timer Mode</label>
-                    <select id="timer-select" class="form-control" onchange="toggleTimerInput(this.value)">
+                    <select id="timer-select" class="form-control">
                         <option value="none">Practice Mode (No Timer)</option>
                         <option value="5">5 Minutes</option>
                         <option value="10" selected>10 Minutes</option>
@@ -106,6 +119,14 @@
         document.getElementById(`cat-${category}`).classList.add('selected');
         selectedCategoryVal = category;
         
+        // Show/hide subcategory dropdown if Programming is selected
+        const langWrapper = document.getElementById('programming-language-wrapper');
+        if (category === 'Programming') {
+            langWrapper.style.display = 'block';
+        } else {
+            langWrapper.style.display = 'none';
+        }
+        
         // If bookmarks are selected, hide difficulty filter as bookmarks are difficulty-agnostic
         const difficultySelect = document.getElementById('difficulty-select');
         if (category === 'Bookmarks') {
@@ -114,10 +135,6 @@
         } else {
             difficultySelect.disabled = false;
         }
-    }
-    
-    function toggleTimerInput(val) {
-        // Can be expanded if needed to customize minutes manually
     }
     
     function startTest() {
@@ -132,6 +149,10 @@
             queryParams.push('bookmarks=true');
         } else {
             queryParams.push(`category=${encodeURIComponent(selectedCategoryVal)}`);
+            if (selectedCategoryVal === 'Programming') {
+                const subcategory = document.getElementById('programming-lang-select').value;
+                queryParams.push(`subcategory=${encodeURIComponent(subcategory)}`);
+            }
             queryParams.push(`difficulty=${encodeURIComponent(difficulty)}`);
         }
         
